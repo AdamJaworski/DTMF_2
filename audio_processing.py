@@ -2,11 +2,11 @@ import numpy as np
 import utilities
 from utilities import get_volume
 from scipy.fft import fft, ifft
-from filters import butter_bandpass, apply_python_filter
+from filters import butter_bandpass, apply_python_filter, apply_python_filter2
 import codes
 
 
-def normalize_audio_in_time(audio: np.ndarray, fs: float, resolution: float = 3, target_db: float = 35):
+def normalize_audio_in_time(audio: np.ndarray, fs: float, resolution: float = 3.1, target_db: float = 35):
     """
 
     :param target_db:
@@ -16,8 +16,8 @@ def normalize_audio_in_time(audio: np.ndarray, fs: float, resolution: float = 3,
     :return:
     """
     for i in range(1, int(len(audio) / (fs * resolution)) + 1):
-        left  = (i - 1) * (fs * resolution) + 512
-        right = min(i * fs * resolution, len(audio))
+        left  = int((i - 1) * (fs * resolution) + 512)
+        right = min(int(i * fs * resolution), len(audio))
         segment = audio[left:right]
 
         loudness_dB = get_volume(segment)
@@ -29,18 +29,12 @@ def normalize_audio_in_time(audio: np.ndarray, fs: float, resolution: float = 3,
 
         filtered_all = np.zeros_like(segment)
         for freq in codes.set_of_freq:
-            filtered_freq = apply_python_filter(segment, fs, [freq], bandwidth=50)
+            filtered_freq = apply_python_filter(segment, fs, [freq], bandwidth=30)
             if np.any(np.isnan(filtered_freq)):
                 print("NaN detected in filtered output.")
                 continue
             if get_volume(filtered_freq) < -20:
                 continue
-
-            # t = np.linspace(0, len(filtered_freq) / fs, num=len(filtered_freq), endpoint=False)
-            # pure_tone = np.sin(2 * np.pi * freq * t)
-            # # Adjust amplitude based on the scale factor and average volume of the bandpass filtered signal
-            # amplitude = np.mean(np.abs(filtered_freq)) * scale_factor
-            # filtered_freq = pure_tone * amplitude
 
             filtered_all += filtered_freq.astype(filtered_all.dtype)
 
@@ -51,7 +45,7 @@ def normalize_audio_in_time(audio: np.ndarray, fs: float, resolution: float = 3,
     return audio
 
 
-def extract_audio_parts(audio, fs, step: float = 0.05, threshold: float = 28, expected_len: float = 0.5, tolerance: float = 0.03, return_len: bool = False):
+def extract_audio_parts(audio, fs, step: float = 0.05, threshold: float = 25, expected_len: float = 0.5, tolerance: float = 0.03, return_len: bool = False):
     extracting_sound = False
     star_pos = 0
     top_freq = 0

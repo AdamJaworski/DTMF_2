@@ -34,15 +34,14 @@ def main(audio: np.ndarray, fs: int, calibration_sequence: bool = True) -> str:
     avg_len = 1.0
     if calibration_sequence:
         print("Calibrating signal..")
-        audio_chunks, avg_len, lowest_len = extract_audio_parts(audio[:fs * 17], fs, return_len=True)
+        audio_chunks, avg_len, lowest_len = extract_audio_parts(audio[:fs * 17], fs, return_len=True) # trzeba ustawić długość pierwszy 12 dźwięków , dla 2022 - 19, dla 2024 - 17
         create_code_dict(audio_chunks, fs)
         print(codes.codes)
         print(codes.set_of_freq)
-        print(avg_len)
 
     audio = apply_python_filter2(audio, fs, codes.set_of_freq, bandwidth=10)
     audio = normalize_audio_in_time(audio, fs)
-    audio_chunks = extract_audio_parts(audio, fs, expected_len=0.41)
+    audio_chunks = extract_audio_parts(audio, fs, expected_len=avg_len * 0.45)
     for chunk in audio_chunks:
         code += decode(chunk, fs)
     # audio = apply_python_filter(audio, fs, codes.set_of_freq, bandwidth=20)
