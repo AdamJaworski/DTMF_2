@@ -2,7 +2,7 @@ import numpy as np
 import utilities
 from utilities import get_volume
 from scipy.fft import fft, ifft
-from filters import butter_bandpass, apply_python_filter, apply_python_filter2
+from filters import apply_python_filter
 import codes
 
 
@@ -30,7 +30,7 @@ def normalize_audio_in_time(audio: np.ndarray, fs: float, resolution: float = 2.
 
         filtered_all = np.zeros_like(segment)
         for freq in codes.set_of_freq:
-            filtered_freq = apply_python_filter2(segment, fs, [freq], bandwidth=30)
+            filtered_freq = apply_python_filter(segment, fs, [freq], bandwidth=30) # This is not filter!!! it should be only selecting freq, so bandwidth is higher
             if np.any(np.isnan(filtered_freq)):
                 continue
             if get_volume(filtered_freq) < -20:

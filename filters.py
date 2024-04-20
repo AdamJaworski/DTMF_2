@@ -36,39 +36,7 @@ def apply_fir(audio: np.ndarray, fs: float, frequencies: list, bandwidth: int = 
     return filtered_audio
 
 
-def apply_python_filter(audio: np.ndarray, fs: float, frequencies: list, bandwidth: int = 5):
-    """
-
-    :param audio: ndarray of audio signal
-    :param fs: sampling frequency of audio signal
-    :param frequencies: list of frequencies on which filter should be applied
-
-    :return: processed audio as ndarray
-    """
-    window = hamming(len(audio))
-    audio_ = audio * window
-
-    fft_data = fft(audio_)
-    new_fft = np.zeros_like(fft_data)
-    freq_bin_width = fs / len(audio)
-
-    i = 0
-    for frequency in frequencies:
-        i += 1
-        lower_freq_bin = int((frequency - bandwidth / 2) / freq_bin_width)
-        upper_freq_bin = int((frequency + bandwidth / 2) / freq_bin_width)
-
-        new_fft[lower_freq_bin:upper_freq_bin] = fft_data[lower_freq_bin:upper_freq_bin]
-        n = len(audio)
-        new_fft[n - upper_freq_bin:n - lower_freq_bin] = fft_data[n - upper_freq_bin:n - lower_freq_bin]
-
-    filtered_audio = ifft(new_fft)
-    filtered_audio /= (window + np.finfo(float).eps)
-    filtered_audio = np.real(filtered_audio).astype(audio.dtype)
-    return filtered_audio
-
-
-def apply_python_filter2(audio: np.ndarray, fs: float, frequencies: list, bandwidth: int = 5):
+def apply_python_filter(audio: np.ndarray, fs: float, frequencies: list, bandwidth: int = 20):
     """
     Apply a bandpass filter around each specified frequency with a specified bandwidth.
 
@@ -103,21 +71,3 @@ def apply_python_filter2(audio: np.ndarray, fs: float, frequencies: list, bandwi
     filtered_audio = np.real(filtered_audio).astype(audio.dtype)
 
     return filtered_audio
-
-
-def butter_bandpass(audio, fs, freq, bandwidth=20, order=4):
-    """
-
-    :param audio:
-    :param fs:
-    :param freq:
-    :param bandwidth:
-    :param order:
-    :return:
-    """
-    nyq = 0.5 * fs
-    low = (freq - bandwidth / 2) / nyq
-    high = (freq + bandwidth / 2) / nyq
-    b, a = butter(order, [low, high], btype='band')
-    y = lfilter(b, a, audio)
-    return y
