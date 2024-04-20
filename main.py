@@ -1,8 +1,12 @@
 import numpy as np
+import scipy.io.wavfile
 import scipy.io.wavfile as wav
-import librosa
-from filters import apply_fir
-
+import codes
+from audio_processing import normalize_audio_in_time, extract_audio_parts
+from filters import apply_python_filter2
+from on_noise_operations import extend_noise, extract_noise, remove_noise
+import warnings
+from codes import create_code_dict, decode
 """
 Plan działania:
 1. odzielenie sekcji głównej od reszty
@@ -27,19 +31,34 @@ def main(audio: np.ndarray, fs: int, calibration_sequence: bool = True) -> str:
     """
 
     code = ''
+    avg_len = 1.0
     if calibration_sequence:
         print("Calibrating signal..")
+        audio_chunks, avg_len, lowest_len = extract_audio_parts(audio[:fs * 17], fs, return_len=True)
+        create_code_dict(audio_chunks, fs)
+        print(codes.codes)
+        print(codes.set_of_freq)
+        print(avg_len)
 
-    audio = apply_fir(audio, fs, [607, 770, 852, 941, 1209, 1336, 1477])
-    wav.write('test.wav', fs, audio)
+    audio = apply_python_filter2(audio, fs, codes.set_of_freq, bandwidth=10)
+    audio = normalize_audio_in_time(audio, fs)
+    audio_chunks = extract_audio_parts(audio, fs, expected_len=0.41)
+    for chunk in audio_chunks:
+        code += decode(chunk, fs)
+    # audio = apply_python_filter(audio, fs, codes.set_of_freq, bandwidth=20)
+    # audio = apply_python_filter(audio, fs, [697, 770, 852, 941, 1209, 1336, 1477], bandwidth=4)
+
+    wav.write('output_norm.wav', fs, audio)
     return code
 
 
 if __name__ == "__main__":
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", category=wav.WavFileWarning)
     # audio file
     audio_path = r'D:/DTMF/data/'
-    audio_on_open, fsr = librosa.load(audio_path + 'challenge 2024.wav')
+    sample_rate, data = wav.read(audio_path + 'challenge 2024.wav')
 
     # starting main process
-    code = main(audio_on_open, fsr)
+    code = main(data, sample_rate)
     print(code)
