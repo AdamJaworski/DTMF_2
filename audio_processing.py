@@ -6,18 +6,19 @@ from filters import butter_bandpass, apply_python_filter, apply_python_filter2
 import codes
 
 
-def normalize_audio_in_time(audio: np.ndarray, fs: float, resolution: float = 3.1, target_db: float = 35):
+def normalize_audio_in_time(audio: np.ndarray, fs: float, resolution: float = 2.99, step: float = 512, target_db: float = 35):
     """
 
-    :param target_db:
     :param audio:
     :param fs:
     :param resolution: time in second for each frame
+    :param step:
+    :param target_db:
     :return:
     """
-    for i in range(1, int(len(audio) / (fs * resolution)) + 1):
-        left  = int((i - 1) * (fs * resolution) + 512)
-        right = min(int(i * fs * resolution), len(audio))
+    for i in range(1, int(len(audio) / (fs * (resolution + 0.1))) + 1):
+        left  = int((i - 1) * (fs * (resolution + 0.1)) + step)
+        right = min(int(i * fs * (resolution + 0.1)), len(audio))
         segment = audio[left:right]
 
         loudness_dB = get_volume(segment)
@@ -29,9 +30,8 @@ def normalize_audio_in_time(audio: np.ndarray, fs: float, resolution: float = 3.
 
         filtered_all = np.zeros_like(segment)
         for freq in codes.set_of_freq:
-            filtered_freq = apply_python_filter(segment, fs, [freq], bandwidth=30)
+            filtered_freq = apply_python_filter2(segment, fs, [freq], bandwidth=30)
             if np.any(np.isnan(filtered_freq)):
-                print("NaN detected in filtered output.")
                 continue
             if get_volume(filtered_freq) < -20:
                 continue
@@ -78,13 +78,10 @@ def extract_audio_parts(audio, fs, step: float = 0.05, threshold: float = 25, ex
             extracting_sound = False
 
     total_len = 0
-    lowest_len = 5
     borders_ = []
     for border in borders:
         if not (border[1] - border[0]) / fs < expected_len:
             local_len = border[1] - border[0]
-            if local_len < lowest_len:
-                local_len = local_len
             total_len += local_len
             borders_.append(audio[border[0]:border[1]])
 
@@ -93,7 +90,7 @@ def extract_audio_parts(audio, fs, step: float = 0.05, threshold: float = 25, ex
     length = (total_len / len(borders)) / fs
 
     if return_len:
-        return borders, length, lowest_len
+        return borders, length
     else:
         return borders
 
