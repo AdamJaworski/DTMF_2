@@ -39,7 +39,7 @@ def main(audio: np.ndarray, fs: int, calibration_sequence: bool = True) -> str:
         print(codes.codes)
         print(codes.set_of_freq)
 
-    audio = apply_python_filter2(audio, fs, codes.set_of_freq, bandwidth=10)
+    audio = apply_python_filter2(audio, fs, codes.set_of_freq, bandwidth=20)
     audio = normalize_audio_in_time(audio, fs)
     audio_chunks = extract_audio_parts(audio, fs, expected_len=avg_len * 0.45)
     for chunk in audio_chunks:

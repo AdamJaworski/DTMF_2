@@ -41,7 +41,6 @@ def normalize_audio_in_time(audio: np.ndarray, fs: float, resolution: float = 3.
         filtered_all = filtered_all * scale_factor
 
         audio[left:right] = filtered_all.astype(audio.dtype)
-        #print(f"Processed segment {i}, Scale Factor: {scale_factor}, Delta dB: {delta_dB}")
     return audio
 
 
