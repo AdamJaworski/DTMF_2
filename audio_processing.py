@@ -1,24 +1,23 @@
 import numpy as np
 import utilities
 from utilities import get_volume
-from scipy.fft import fft, ifft
 from filters import apply_python_filter
 import codes
 
 
-def normalize_audio_in_time(audio: np.ndarray, fs: float, resolution: float = 2.99, step: float = 512, target_db: float = 35):
+def normalize_audio_in_time(audio: np.ndarray, fs: float, step: float = 512, target_db: float = 35):
     """
 
-    :param audio:
-    :param fs:
-    :param resolution: time in second for each frame
-    :param step:
-    :param target_db:
-    :return:
+    :param audio: ndarray of audio signal
+    :param fs: sampling freq of audio
+    :param step: Distance between frames, so they won't overlap
+    :param target_db: target volume in dB
+    :return: normalized audio single
     """
-    for i in range(1, int(len(audio) / (fs * (resolution + 0.1))) + 1):
-        left  = int((i - 1) * (fs * (resolution + 0.1)) + step)
-        right = min(int(i * fs * (resolution + 0.1)), len(audio))
+    resolution = np.clip((len(audio) / fs) / (target_db + (step / 4) / 100), 2.7, 3.2)
+    for i in range(1, int(len(audio) / (fs * resolution)) + 1):
+        left  = int((i - 1) * (fs * resolution) + step)
+        right = min(int(i * fs * resolution), len(audio))
         segment = audio[left:right]
 
         loudness_dB = get_volume(segment)
@@ -33,7 +32,7 @@ def normalize_audio_in_time(audio: np.ndarray, fs: float, resolution: float = 2.
             filtered_freq = apply_python_filter(segment, fs, [freq], bandwidth=30) # This is not filter!!! it should be only selecting freq, so bandwidth is higher
             if np.any(np.isnan(filtered_freq)):
                 continue
-            if get_volume(filtered_freq) < -20:
+            if get_volume(filtered_freq) < -target_db:
                 continue
 
             filtered_all += filtered_freq.astype(filtered_all.dtype)

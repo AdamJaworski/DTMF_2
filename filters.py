@@ -1,6 +1,6 @@
 import numpy as np
 from scipy.signal import firwin, lfilter, butter
-from scipy.signal.windows import hamming, get_window
+from scipy.signal.windows import get_window
 import scipy.io.wavfile as wav
 from scipy.fft import fft, ifft
 

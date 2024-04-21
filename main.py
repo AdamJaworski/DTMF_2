@@ -6,7 +6,7 @@ from filters import apply_python_filter
 from codes import create_code_dict, decode
 
 
-def main(audio: np.ndarray, fs: int, calibration_sequence: bool = True, write_file: bool = True) -> str:
+def main(audio: np.ndarray, fs: int, calibration_sequence: bool = True, write_file: bool = False) -> str:
     """
     Main process of decoding sequence
     :param audio: ndarray of audio signal
@@ -19,7 +19,7 @@ def main(audio: np.ndarray, fs: int, calibration_sequence: bool = True, write_fi
     if calibration_sequence:
         print("Calibrating signal..")
         # Tutaj trzeba ustawić długość w sekunda pierwszych 12 dźwięków z kalibracji, dla 2022 jest to 19 dla 2024 jest to 17 sekund
-        audio_chunks, avg_len = extract_audio_parts(audio[:fs * 17], fs, threshold=28, return_len=True)
+        audio_chunks, avg_len = extract_audio_parts(audio[:fs * 19], fs, threshold=28, return_len=True)
         create_code_dict(audio_chunks, fs)
         print(codes.codes)
         print(codes.set_of_freq)
@@ -33,6 +33,7 @@ def main(audio: np.ndarray, fs: int, calibration_sequence: bool = True, write_fi
     audio_chunks = extract_audio_parts(audio, fs, expected_len=avg_len * 0.45)
 
     code = ''
+
     for chunk in audio_chunks:
         code += decode(chunk, fs)
 
@@ -44,7 +45,7 @@ def main(audio: np.ndarray, fs: int, calibration_sequence: bool = True, write_fi
 if __name__ == "__main__":
     # audio file
     audio_path = r'D:/DTMF/data/'
-    sample_rate, data = wav.read(audio_path + 'challenge 2024.wav')
+    sample_rate, data = wav.read(audio_path + 'challenge 2022.wav')
 
     # starting main process
     code = main(data, sample_rate)
