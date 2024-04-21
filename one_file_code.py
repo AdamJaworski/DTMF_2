@@ -245,20 +245,20 @@ def decode(audio, fs):
     return codes[(low_value, top_value)]
 
 
-def main(audio: np.ndarray, fs: int, calibration_sequence: bool = True, write_file: bool = False, length_of_calibration: float = 19) -> str:
-    global set_of_freq
+def main(audio: np.ndarray, fs: int, calibration_sequence: bool = True, write_file: bool = False, calibration_sequence_data: tuple = (17, 28)) -> str:
     """
     Main process of decoding sequence
     :param audio: ndarray of audio signal
     :param fs: sampling frequency of audio signal
     :param calibration_sequence:
     :param write_file:
-    :param length_of_calibration:
+    :param calibration_sequence_data: Tuple for calibration sequence, first is length, second is threshold
     :return: code as str
     """
 
+    global set_of_freq
     if calibration_sequence:
-        audio_chunks, avg_len = extract_audio_parts(audio[:fs * length_of_calibration], fs, threshold=28, return_len=True)
+        audio_chunks, avg_len = extract_audio_parts(audio[:fs * calibration_sequence_data[0]], fs, threshold=calibration_sequence_data[1], return_len=True)
         create_code_dict(audio_chunks, fs)
     else:
         avg_len = 1.0
@@ -284,6 +284,10 @@ if __name__ == "__main__":
     audio_path = r'./challenge 2024.wav'
     sample_rate, data = wav.read(audio_path)
 
-    # Tutaj trzeba ustawić długość w sekunda pierwszych 12 dźwięków z kalibracji, dla 2022 jest to 19 dla 2024 jest to 17 sekund
-    code = main(data, sample_rate, calibration_sequence=True, length_of_calibration=17)
+    # Tutaj trzeba ustawić długość w sekunda pierwszych 12 dźwięków z kalibracji, oraz threshold głośności
+    # dla kolejnych lat jest to:
+    # 2024 -> (17, 28)
+    # 2022 -> (19, 28)
+    # 2021 -> (13, 22)
+    code = main(data, sample_rate, calibration_sequence=True, calibration_sequence_data=(17, 28))
     print(code)
