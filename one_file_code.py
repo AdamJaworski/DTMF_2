@@ -25,19 +25,15 @@ def apply_python_filter(audio: np.ndarray, fs: float, frequencies: list, bandwid
         lower_bound = int((freq - bandwidth / 2) * n / fs)
         upper_bound = int((freq + bandwidth / 2) * n / fs)
 
-        # Ensure indices remain within valid range
         lower_bound = max(lower_bound, 0)
         upper_bound = min(upper_bound, n // 2)
 
-        # Create a window to smoothly transition in and out of the bandpass range
         window = get_window('hamming', upper_bound - lower_bound, False)
         window = np.pad(window, (lower_bound, n - upper_bound), 'constant', constant_values=(0, 0))
 
-        # Apply window to both positive and negative frequencies
         filtered_fft[:upper_bound] += window[:upper_bound] * fft_data[:upper_bound]
         filtered_fft[-upper_bound:] += window[:upper_bound][::-1] * fft_data[-upper_bound:]
 
-    # Perform the inverse FFT
     filtered_audio = ifft(filtered_fft)
     filtered_audio = np.real(filtered_audio).astype(audio.dtype)
 
@@ -288,7 +284,6 @@ if __name__ == "__main__":
     audio_path = r'./challenge 2024.wav'
     sample_rate, data = wav.read(audio_path)
 
-    # starting main process
     # Tutaj trzeba ustawić długość w sekunda pierwszych 12 dźwięków z kalibracji, dla 2022 jest to 19 dla 2024 jest to 17 sekund
     code = main(data, sample_rate, calibration_sequence=True, length_of_calibration=17)
     print(code)
